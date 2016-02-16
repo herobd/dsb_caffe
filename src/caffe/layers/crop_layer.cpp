@@ -7,6 +7,8 @@
 #include "caffe/net.hpp"
 #include "caffe/vision_layers.hpp"
 
+#include <iostream>
+
 namespace caffe {
 
 template <typename Dtype>
@@ -55,12 +57,20 @@ void CropLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     for (Blob<Dtype>* blob = bottom[i]; blob != inter_blob;
          blob = this->net_->bottom_vecs()[down_map[blob]][0]) {
       shared_ptr<Layer<Dtype> > layer = this->net_->layers()[down_map[blob]];
+      std::cout<<i<<"} "<<coord_maps[i].coefs()[0].first<<","<<coord_maps[i].coefs()[0].second<<"; "<<coord_maps[i].coefs()[1].first<<","<<coord_maps[i].coefs()[1].second<<" compose with "<<layer->coord_map().coefs()[0].first<<","<<layer->coord_map().coefs()[0].first<<"; "<<layer->coord_map().coefs()[1].first<<","<<layer->coord_map().coefs()[1].first<<std::endl;
       coord_maps[i] = coord_maps[i].compose(layer->coord_map());
+      std::cout<<"    is "<<coord_maps[i].coefs()[0].first<<","<<coord_maps[i].coefs()[0].second<<"; "<<coord_maps[i].coefs()[1].first<<","<<coord_maps[i].coefs()[1].second<<std::endl;
     }
   }
   // Compute the mapping from first bottom coordinates to second.
   DiagonalAffineMap<Dtype> crop_map =
       coord_maps[1].compose(coord_maps[0].inv());
+    std::cout<<"cood_maps[0]="<<coord_maps[0].coefs()[0].first<<","<<coord_maps[0].coefs()[0].second<<std::endl;
+    std::cout<<"cood_maps[0]="<<coord_maps[0].coefs()[1].first<<","<<coord_maps[0].coefs()[1].second<<std::endl;
+    std::cout<<"cood_maps[1]="<<coord_maps[1].coefs()[0].first<<","<<coord_maps[1].coefs()[0].second<<std::endl;
+    std::cout<<"cood_maps[1]="<<coord_maps[1].coefs()[1].first<<","<<coord_maps[1].coefs()[1].second<<std::endl;
+    std::cout<<"cood_map="<<crop_map.coefs()[0].first<<","<<crop_map.coefs()[0].second<<std::endl;
+    std::cout<<"crop_map="<<crop_map.coefs()[1].first<<","<<crop_map.coefs()[1].second<<std::endl;
   for (int i = 0; i < 2; ++i) {
     // Check for scale mismatch (unfortunately, CHECK_DOUBLE_EQ does not
     // support a message like the other CHECKs).
