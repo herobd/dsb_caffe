@@ -1,90 +1,10 @@
 name: "Caffe_sunny"
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    #mirror: true
-    #crop_size: 227
-    #mean_file: "data/ilsvrc12/imagenet_mean.binaryproto"
-    mean_value: 77
-  }
-# mean pixel / channel-wise mean instead of mean image
-#  transform_param {
-#    crop_size: 227
-#    mean_value: 104
-#    mean_value: 117
-#    mean_value: 123
-#    mirror: true
-#  }
-  data_param {
-    source: "data/sunnybrook_training/train_images3c227_lmdb/"
-    batch_size: 256
-    backend: LMDB
-  }
-}
-layer {
-  name: "label"
-  type: "Data"
-  top: "label"
-  include {
-    phase: TRAIN
-  }
-  data_param {
-    source: "data/sunnybrook_training/train_labels3c227_lmdb/"
-    batch_size: 256
-    backend: LMDB
-  }
-  transform_param {
-    #crop_size: 227
-  }
-}
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    #mirror: false
-    #crop_size: 227
-    #mean_file: "data/ilsvrc12/imagenet_mean.binaryproto"
-    mean_value: 77
-  }
-# mean pixel / channel-wise mean instead of mean image
-#  transform_param {
-#    crop_size: 227
-#    mean_value: 104
-#    mean_value: 117
-#    mean_value: 123
-#    mirror: true
-#  }
-  data_param {
-    source: "data/sunnybrook_training/val_images3c227_lmdb/"
-    batch_size: 50
-    backend: LMDB
-  }
-}
-layer {
-  name: "label"
-  type: "Data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  data_param {
-    source: "data/sunnybrook_training/val_labels3c227_lmdb/"
-    batch_size: 50
-    backend: LMDB
-  }
-  transform_param {
-    #crop_size: 227
-  }
-}
+#force_backward: true
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 227
+input_dim: 227
 layer {
   name: "conv1"
   type: "Convolution"
@@ -401,24 +321,10 @@ layer {
 #  top: "score"
 #}
 layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
+  name: "prob"
+  type: "Softmax"
   bottom: "score"
-  bottom: "label"
-  top: "loss"
-  loss_param {
-    normalize: true
-  }
-}
-layer { 
-  name: "accuracy"
-  type: "Accuracy"
-  bottom: "score"
-  bottom: "label"
-  top: "accuracy"
-  include {
-    phase: TEST
-  }
+  top: "prob"
 }
 
 

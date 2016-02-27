@@ -70,7 +70,9 @@ def load_contour_3c(contour, img_path):
     ctrs = np.loadtxt(contour.ctr_path, delimiter=" ").astype(np.int)
     label = np.zeros_like(img, dtype="uint8")
     cv2.fillPoly(label, [ctrs], 1)
-    img = np.dstack((img,img,img))
+    #img = np.dstack((img,img,img))
+    img = np.expand_dims(img, axis=0)
+    img = np.concatenate((img,img,img),axis=0)
     return img, label
     
 def get_all_contours(contour_path):
@@ -103,42 +105,42 @@ def export_all_contours(contours, img_path, lmdb_img_name, lmdb_label_name):
                 img, label = load_contour_3c(ctr, img_path)
                 #Brian adding to make 227x227 images
                 #crop from corners and middles
-                tl_img = img[0:227,0:227]
+                tl_img = img[:,0:227,0:227]
                 tl_label = label[0:227,0:227]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[29:256,0:227]
+                tl_img = img[:,29:256,0:227]
                 tl_label = label[29:256,0:227]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[0:227,29:256]
+                tl_img = img[:,0:227,29:256]
                 tl_label = label[0:227,29:256]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[29:256,29:256]
+                tl_img = img[:,29:256,29:256]
                 tl_label = label[29:256,29:256]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[0:227,15:242]
+                tl_img = img[:,0:227,15:242]
                 tl_label = label[0:227,15:242]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[15:242,0:227]
+                tl_img = img[:,15:242,0:227]
                 tl_label = label[15:242,0:227]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[29:256,15:242]
+                tl_img = img[:,29:256,15:242]
                 tl_label = label[29:256,15:242]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[15:242,29:256]
+                tl_img = img[:,15:242,29:256]
                 tl_label = label[15:242,29:256]
                 imgs.append(tl_img)
                 labels.append(tl_label)

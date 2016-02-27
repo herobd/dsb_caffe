@@ -6,6 +6,10 @@ np.random.seed(1234)
 import matplotlib.pyplot as plt
 import warnings
 
+
+prefix=sys.argv[1]
+mode=sys.argv[2]
+
 CAFFE_ROOT = "/home/brianld/bleeding_caffe"
 caffe_path = os.path.join(CAFFE_ROOT, "python")
 if caffe_path not in sys.path:
@@ -45,7 +49,11 @@ class Dataset(object):
                         times.append(int(m.group(2)))
                     if offset is None:
                         offset = int(m.group(1))
-
+                else:
+                  m = re.match('IM-(\d{4,})-(\d{4})-(\d{4})\.dcm', f)
+                  if m is not None:
+			nothin='nothin'
+                      
             first = False
             slices_map[s] = offset
 
@@ -64,6 +72,8 @@ class Dataset(object):
     def _read_dicom_image(self, filename):
         d = dicom.read_file(filename)
         img = d.pixel_array.astype('int')
+        #img = np.expand_dims(img, axis=0)
+        #img = np.concatenate((img,img,img),axis=0)
         return img
 
     def _read_all_dicom_images(self):
@@ -99,7 +109,7 @@ THRESH = 0.5
 
 def calc_all_areas(images):
     (num_images, times, _, _) = images.shape
-    
+    print 'calc_all_areas'
     all_masks = [{} for i in range(times)]
     all_areas = [{} for i in range(times)]
     for i in range(times):
@@ -107,7 +117,10 @@ def calc_all_areas(images):
             # print 'Calculating area for time %d and slice %d...' % (i, j)
             img = images[j][i]
             in_ = np.expand_dims(img, axis=0)
+            
             in_ -= np.array([MEAN_VALUE])
+            in_ = np.concatenate((in_,in_,in_),axis=0)
+            #print 'hey hey, here is shape: '+str(in_.shape)
             net.blobs['data'].reshape(1, *in_.shape)
             net.blobs['data'].data[...] = in_
             net.forward()
@@ -148,30 +161,35 @@ def segment_dataset(dataset):
 
 ###############
 #%%time
+#prefix2='dag'
 # We capture all standard output from IPython so it does not flood the interface.
+#if True:
 with io.capture_output() as captured:
     # edit this so it matches where you download the DSB data
     DATA_PATH = '/scratch/cardiacMRI/'
-
+    #print 'init net'
     caffe.set_mode_gpu()
-    caffe.set_device(3)
-    net = caffe.Net('models/cardiac/dag_deploy.prototxt', 'data/sunnybrook_training/network/dag2x_iter_15000.caffemodel', caffe.TEST)
+    caffe.set_device(6)
+    net = caffe.Net('models/cardiac/'+prefix+'_deploy.prototxt', 'data/sunnybrook_training/network/'+prefix+'_iter_15000.caffemodel', caffe.TEST)
 
-    train_dir = os.path.join(DATA_PATH, 'train')
+    train_dir = os.path.join(DATA_PATH, mode)
+    print 'DICOM dir is '+train_dir
     studies = next(os.walk(train_dir))[1]
-
-    labels = np.loadtxt(os.path.join(DATA_PATH, 'train.csv'), delimiter=',',
+    #print 'load csv'
+    if mode=='train':
+        labels = np.loadtxt(os.path.join(DATA_PATH, 'train.csv'), delimiter=',',
                         skiprows=1)
 
-    label_map = {}
-    for l in labels:
-        label_map[l[0]] = (l[2], l[1])
-
+        label_map = {}
+        for l in labels:
+            label_map[l[0]] = (l[2], l[1])
+        accuracy_csv = open('accuracy_'+prefix+'.csv', 'w')
+    else:
+        accuracy_csv = open('volumes_'+prefix+'.csv', 'w')
     if os.path.exists('output'):
         shutil.rmtree('output')
     os.mkdir('output')
 
-    accuracy_csv = open('accuracy_dag.csv', 'w')
 
     for s in studies:
         dset = Dataset(os.path.join(train_dir, s), s)
@@ -179,9 +197,14 @@ with io.capture_output() as captured:
         try:
             dset.load()
             segment_dataset(dset)
-            (edv, esv) = label_map[int(dset.name)]
-            accuracy_csv.write('%s,%f,%f,%f,%f\n' %
+            if mode=='test':
+                (edv, esv) = label_map[int(dset.name)]
+                accuracy_csv.write('%s,%f,%f,%f,%f\n' %
                                (dset.name, edv, esv, dset.edv, dset.esv))
+            else:
+                accuracy_csv.write('%s,%f,%f\n' %
+                               (dset.name, dset.edv, dset.esv))
+                
         except Exception as e:
             print '***ERROR***: Exception %s thrown by dataset %s' % (str(e), dset.name)
 
@@ -189,5 +212,5 @@ with io.capture_output() as captured:
 
 # We redirect the captured stdout to a log file on disk.
 # This log file is very useful in identifying potential dataset irregularities that throw errors/exceptions in the code.
-with open('logs.txt', 'w') as f:
+with open(prefix+'_logs.txt', 'w') as f:
     f.write(captured.stdout)
