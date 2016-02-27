@@ -1,0 +1,11 @@
+Caffe fine-tuned
+Mean absolute error (MAE) for predicted EF: 0.1739
+Root mean square error (RMSE) for predicted EF: 0.2138
+
+Tutorial network
+Mean absolute error for predicted EF: 0.1911
+Root mean square error for predicted EF: 0.2383
+Skip architecture network
+Mean absolute error for predicted EF: 0.1790
+Root mean square error for predicted EF: 0.2242
+
