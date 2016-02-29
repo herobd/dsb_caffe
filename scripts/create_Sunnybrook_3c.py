@@ -103,20 +103,20 @@ def export_all_contours(contours, img_path, lmdb_img_name, lmdb_label_name):
             #print 'trying '+str(ctr)+ ', '+img_path
             try:
                 img, label = load_contour_3c(ctr, img_path)
-                #Brian adding to make 227x227 images
+                #Brian adding to make 224x224 images
                 #crop from corners and middles
-                tl_img = img[:,0:227,0:227]
-                tl_label = label[0:227,0:227]
+                tl_img = img[:,0:224,0:224]
+                tl_label = label[0:224,0:224]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[:,29:256,0:227]
-                tl_label = label[29:256,0:227]
+                tl_img = img[:,29:256,0:224]
+                tl_label = label[29:256,0:224]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[:,0:227,29:256]
-                tl_label = label[0:227,29:256]
+                tl_img = img[:,0:224,29:256]
+                tl_label = label[0:224,29:256]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
@@ -125,13 +125,13 @@ def export_all_contours(contours, img_path, lmdb_img_name, lmdb_label_name):
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[:,0:227,15:242]
-                tl_label = label[0:227,15:242]
+                tl_img = img[:,0:224,15:242]
+                tl_label = label[0:224,15:242]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
-                tl_img = img[:,15:242,0:227]
-                tl_label = label[15:242,0:227]
+                tl_img = img[:,15:242,0:224]
+                tl_label = label[15:242,0:224]
                 imgs.append(tl_img)
                 labels.append(tl_label)
                 
@@ -178,6 +178,6 @@ if __name__== "__main__":
     train_ctrs = ctrs[int(SPLIT_RATIO*len(ctrs)):]
     print("Done mapping ground truth contours to images")
     print("\nBuilding LMDB for train...")
-    export_all_contours(train_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/train_images3c227_lmdb", "data/sunnybrook_training/train_labels3c227_lmdb")
+    export_all_contours(train_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/train_images3c224_lmdb", "data/sunnybrook_training/train_labels3c224_lmdb")
     print("\nBuilding LMDB for val...")
-    export_all_contours(val_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/val_images3c227_lmdb", "data/sunnybrook_training/val_labels3c227_lmdb")
+    export_all_contours(val_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/val_images3c224_lmdb", "data/sunnybrook_training/val_labels3c224_lmdb")
