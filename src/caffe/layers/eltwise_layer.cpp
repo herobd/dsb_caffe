@@ -5,6 +5,9 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 
+//Brian
+#include <iostream>
+
 namespace caffe {
 
 template <typename Dtype>
@@ -32,6 +35,14 @@ template <typename Dtype>
 void EltwiseLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   for (int i = 1; i < bottom.size(); ++i) {
+    //Brian
+    if (bottom[i]->shape() != bottom[0]->shape()) {
+      std::cout<<"size: "<<bottom[i]->shape().size()<<" ?= "<< bottom[0]->shape().size()<<std::endl;
+      for (int iii=0; iii<bottom[0]->shape().size(); iii++) {
+        std::cout<<"["<<iii<<"]: "<<bottom[i]->shape()[iii]<<" ?= "<< bottom[0]->shape()[iii]<<std::endl;
+        
+      }
+    }
     CHECK(bottom[i]->shape() == bottom[0]->shape());
   }
   top[0]->ReshapeLike(*bottom[0]);

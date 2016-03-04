@@ -104,46 +104,14 @@ def export_all_contours(contours, img_path, lmdb_img_name, lmdb_label_name):
             try:
                 img, label = load_contour_3c(ctr, img_path)
                 #Brian adding to make 224x224 images
-                #crop from corners and middles
-                tl_img = img[:,0:224,0:224]
-                tl_label = label[0:224,0:224]
-                imgs.append(tl_img)
-                labels.append(tl_label)
+                #crop 9 random windows
+                for ii in xrange(9):
+                   topLeft = np.random.random_integers(0,32,2) 
+                   tl_img = img[:,topLeft[0]:224+topLeft[0],topLeft[1]:224+topLeft[1]]
+                   tl_label = label[topLeft[0]:224+topLeft[0],topLeft[1]:224+topLeft[1]]
+                   imgs.append(tl_img)
+                   labels.append(tl_label)
                 
-                tl_img = img[:,32:256,0:224]
-                tl_label = label[32:256,0:224]
-                imgs.append(tl_img)
-                labels.append(tl_label)
-                
-                tl_img = img[:,0:224,32:256]
-                tl_label = label[0:224,32:256]
-                imgs.append(tl_img)
-                labels.append(tl_label)
-                
-                tl_img = img[:,32:256,32:256]
-                tl_label = label[32:256,32:256]
-                imgs.append(tl_img)
-                labels.append(tl_label)
-                
-                tl_img = img[:,0:224,17:241]
-                tl_label = label[0:224,17:241]
-                imgs.append(tl_img)
-                labels.append(tl_label)
-                
-                tl_img = img[:,17:241,0:224]
-                tl_label = label[17:241,0:224]
-                imgs.append(tl_img)
-                labels.append(tl_label)
-                
-                tl_img = img[:,32:256,17:241]
-                tl_label = label[32:256,17:241]
-                imgs.append(tl_img)
-                labels.append(tl_label)
-                
-                tl_img = img[:,17:241,32:256]
-                tl_label = label[17:241,32:256]
-                imgs.append(tl_img)
-                labels.append(tl_label)
                 if idx % 20 == 0:
                     print ctr
                     #plt.imshow(img)
@@ -178,6 +146,6 @@ if __name__== "__main__":
     train_ctrs = ctrs[int(SPLIT_RATIO*len(ctrs)):]
     print("Done mapping ground truth contours to images")
     print("\nBuilding LMDB for train...")
-    export_all_contours(train_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/train_images3c224_lmdb", "data/sunnybrook_training/train_labels3c224_lmdb")
+    export_all_contours(train_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/train_images3c224r_lmdb", "data/sunnybrook_training/train_labels3c224r_lmdb")
     print("\nBuilding LMDB for val...")
-    export_all_contours(val_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/val_images3c224_lmdb", "data/sunnybrook_training/val_labels3c224_lmdb")
+    export_all_contours(val_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/val_images3c224r_lmdb", "data/sunnybrook_training/val_labels3c224r_lmdb")

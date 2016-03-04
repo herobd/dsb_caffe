@@ -28,8 +28,30 @@ edv_mean = np.mean(actual_edv)
 
 dias_k = actual_edv.sum()/predicted_edv.sum()
 sys_k = actual_esv.sum()/predicted_esv.sum()
-k = (dias_k+sys_k)/2
-print 'predicted k = '+str(k)
+#k = (dias_k+sys_k)/2
+#print 'predicted k = '+str(k)
+
+#for i in xrange(ids.shape[0]):
+
+#    id = str(int(ids[i]))
+#    sys_k += actual_esv[i]/predicted_esv[i]
+#    dias_k += actual_edv[i]/predicted_edv[i]
+
+#dias_k /=ids.shape[0]
+#sys_k /=ids.shape[0]
+print 'predicted dias_k = '+str(dias_k)
+print 'predicted sys_k = '+str(sys_k)
+
+predicted_esv_adj = predicted_esv*sys_k
+MAEsv = np.mean(np.abs(actual_esv - predicted_esv_adj))
+RMSEsv = np.sqrt(np.mean((actual_esv - predicted_esv_adj)**2))
+print 'Mean absolute error (MAE) for predicted systole vol: {:0.4f}'.format(MAEsv)
+print 'Root mean square error (RMSE) for predicted systole vol: {:0.4f}'.format(RMSEsv)
+predicted_edv_adj = predicted_edv*dias_k
+MAEdv = np.mean(np.abs(actual_edv - predicted_edv_adj))
+RMSEdv = np.sqrt(np.mean((actual_edv - predicted_edv_adj)**2))
+print 'Mean absolute error (MAE) for predicted diastole vol: {:0.4f}'.format(MAEdv)
+print 'Root mean square error (RMSE) for predicted diastole vol: {:0.4f}'.format(RMSEdv)
 
 dataV = np.transpose(np.loadtxt(volFile, delimiter=',')).astype('float')
 ids, predicted_edv, predicted_esv = dataV
@@ -47,8 +69,8 @@ out.write('\n')
 for i in xrange(ids.shape[0]):
     used[int(ids[i])-validStart]=True
     id = str(int(ids[i]))
-    esv = int(round(predicted_esv[i]*k))
-    edv = int(round(predicted_edv[i]*k))
+    esv = int(round(predicted_esv[i]*sys_k))
+    edv = int(round(predicted_edv[i]*dias_k))
     out.write(id+'_Systole')
     step=False
     for v in xrange(maxVol):

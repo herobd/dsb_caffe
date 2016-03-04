@@ -1,9 +1,11 @@
 from IPython.utils import io
 import numpy as np
+import sys
 
+fname = sys.argv[1]
 
 # calculate some error metrics to evaluate actual vs. predicted EF values obtained from FCN model
-data = np.transpose(np.loadtxt('accuracy_caffe.csv', delimiter=',')).astype('float')
+data = np.transpose(np.loadtxt(fname, delimiter=',')).astype('float')
 ids, actual_edv, actual_esv, predicted_edv, predicted_esv = data
 actual_ef = (actual_edv - actual_esv) / actual_edv
 actual_ef_std = np.std(actual_ef)

@@ -1,0 +1,37 @@
+# The train/test net protocol buffers definition
+net: "models/cardiac/drop_vgg16_train.prototxt"
+#test_net: "models/cardiac/dag_test.prototxt"
+
+# test_iter specifies how many forward passes the test should carry out.
+# In our case, we have test batch size 1 and 26 test iterations,
+# covering the full size of testing images.
+test_iter: 8
+
+# Carry out testing every 200 training iterations.
+test_interval: 200
+
+# display interval
+display: 200
+average_loss: 200
+
+# The learning rate policy
+lr_policy: "multistep"
+stepvalue: 10000
+gamma: 0.1
+
+# The base learning rate, momentum and the weight decay of the network.
+base_lr: 0.001
+momentum: 0.9
+weight_decay: 0.0005
+
+# The maximum number of iterations
+max_iter: 15000
+
+# snapshot intervals to disk
+snapshot: 2500
+snapshot_prefix: "data/sunnybrook_training/network/drop_vgg16"
+
+# misc settings
+test_initialization: true
+random_seed: 5
+#solver_type: NESTEROV

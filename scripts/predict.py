@@ -5,12 +5,16 @@ import numpy as np
 np.random.seed(1234)
 import matplotlib.pyplot as plt
 import warnings
+import operator
 import pickle
 
 mode=sys.argv[1]
 
-prefix=sys.argv[2]
-
+prefix=sys.argv[2]#or pickl
+load =  '_seg.pkl' in prefix
+loadFile=prefix
+if load:
+  prefix=re.match(r'(.*)_seg\.pkl',loadFile).group(1)
 gpu_num=int(sys.argv[3])
 
 iteration=15000
@@ -114,6 +118,8 @@ class Dataset(object):
 MEAN_VALUE = 77
 THRESH = 0.5
 net=None
+
+
 def calc_all_areas(images):
     (num_images, times, _, _) = images.shape
     print 'calc_all_areas'
@@ -151,12 +157,23 @@ def calc_all_areas(images):
             all_masks[i][j] = preds
             all_areas[i][j] = np.count_nonzero(preds)
     f = open('seg_results/'+prefix+'_seg.pkl','w')
-    if f:
-        pickle.dump(all_probs,f)
-        f.close()
-    else:
-        print 'error opening: '+'seg_results/'+prefix+'_seg.pkl'
-    return all_masks, all_areas #, all_probs
+    pickle.dump(all_probs,f)
+    f.close()
+    return all_masks, all_areas, all_probs
+
+def calc_all_areas_from_probs(images,all_probs):
+    (num_images, times, _, _) = images.shape
+    print 'calc_all_areas_FROM_PROBS'
+    all_masks = [{} for i in range(times)]
+    all_areas = [{} for i in range(times)]
+    for i in range(times):
+        for j in range(num_images):
+            
+            obj = all_probs[i][j]
+            preds = np.where(obj > THRESH, 1, 0)
+            all_masks[i][j] = preds
+            all_areas[i][j] = np.count_nonzero(preds)
+    return all_masks, all_areas
 
 def calc_total_volume(areas, area_multiplier, dist):
     slices = np.array(sorted(areas.keys()))
@@ -168,11 +185,51 @@ def calc_total_volume(areas, area_multiplier, dist):
         vol += subvol / 1000.0  # conversion to mL
     return vol
 
-#def calc_accumulative_distributions(probs):
-#    slices = np.array(sorted(probs.keys()))
-    
+def calc_accumulative_distributions(prob,area_multiplier,dist,predVol):
+        volumes=[]
+        volScores=[]
+        sumScores=0
+        dev=0
+        slices = np.array(sorted(prob.keys()))
+        for threshold in np.arange(0.31,0.7,0.01):
+            preds = np.where(prob > threshold, 1, 0)
+            areas=np.count_nonzero(preds)
+            scores= np.multiply(preds,prob)
+            modified = [areas[i] * area_multiplier for i in slices]
 
-def segment_dataset(dataset):
+            vol=0;
+            volScore=0;
+            for i in slices[:-1]:
+                a, b = modified[i], modified[i+1]
+                subvol = (dist/3.0) * (a + np.sqrt(a*b) + b)
+                vol += subvol / 1000.0  # conversion to mL
+                volScore += scores[i].sum()/area[i]
+            volumes.append(vol)
+            volScores.append(volScore/len(slices))
+            sumScores+=volScore/len(slices)
+            dev+=pow(volume-predVol,2)
+         dev=sqrt(dev/len(volumes))
+         dist=[0]*600
+         prevVal=0
+         prevVol=int(volumes[0])-5
+         for i in xrange(len(volumes)):
+            devs = (volumes[i]-predVol)/dev
+            newVal=0.5-(devs*0.3)
+            newVol=min(int(volumes[i]),599)
+            if newVol==prevVol:
+                continue
+            slope = (newVal-prevVal)/(newVol-prevVol) 
+            for x in range(prevVol,newVol)
+                dist[x]=prevVal
+                prevVal+=slope
+         newVol = min(599,prevVol+5)
+         slope = (1-prevVal)/(newVol-prevVol) 
+         for x in range(prevVol,newVol)
+             dist[x]=prevVal
+             prevVal+=slope
+         for x in range(newVol,600)
+             dist[x]=1.0
+def segment_dataset(dataset,actual_dv,actual_sv)
     # shape: num slices, num snapshots, rows, columns
     print 'Calculating areas...'
     all_masks, all_areas, all_probs = calc_all_areas(dataset.images)
@@ -188,27 +245,78 @@ def segment_dataset(dataset):
     sys_k = np.sum(actual_sv)/np.sum(esv)
     k=(dias_k+sys_k)/2.0;
     print 'calulated k = ' + str(k)   
-    #dias_probs = [all_probs[i] for i in edv_idx]
-    #sys_probs = [all_probs[i] for i in esv_idx]
-    #dataset.dias_dist = calc_accumulative_distributions(dias_probs)
-    #dataset.sys_dist = calc_accumulative_distributions(sys_probs)
+    dias_prob = all_probs[edv_idx]
+    sys_prob = all_probs[esv_idx]
+    dataset.dias_dist = calc_accumulative_distributions(dias_prob,dataset.area_multiplier,dataset.dist,edv)
+    dataset.sys_dist = calc_accumulative_distributions(sys_prob,dataset.area_multiplier,dataset.dist,esv)
  
     dataset.edv = edv
     dataset.esv = esv
     dataset.ef = ef
 
+def segment_dataset_load(dataset,loadFile)
+    # shape: num slices, num snapshots, rows, columns
+    f=open(loadFile,'r')
+    all_probs = pickle.load(f)
+    f.close()
+    print 'Calculating areas...'
+    all_masks, all_areas = calc_all_areas_from_probs(dataset.images,all_probs)
+    print 'Calculating volumes...'
+    area_totals = [calc_total_volume(a, dataset.area_multiplier, dataset.dist)
+                   for a in all_areas]
+    print 'Calculating EF...'
+    edv_idx,edv = max(enumerate(area_totals), key=operator.itemgetter(1))
+    esv_idx,esv = min(enumerate(area_totals), key=operator.itemgetter(1))
+    ef = (edv - esv) / edv
+    print 'Done, EF is {:0.4f}'.format(ef)
+    #dias_k = np.sum(actual_dv)/np.num(edv)
+    #sys_k = np.sum(actual_sv)/np.sum(esv)
+    #k=(dias_k+sys_k)/2.0;
+    #print 'calulated k = ' + str(k)   
+    dias_prob = all_probs[edv_idx]
+    sys_prob = all_probs[esv_idx]
+    dataset.dias_dist = calc_accumulative_distributions(dias_prob,dataset.area_multiplier,dataset.dist,edv)
+    dataset.sys_dist = calc_accumulative_distributions(sys_prob,dataset.area_multiplier,dataset.dist,esv)
+ 
+    dataset.edv = edv
+    dataset.esv = esv
+    dataset.ef = ef
+
+def segment_dataset_k(dataset,k):
+    # shape: num slices, num snapshots, rows, columns
+    print 'Calculating areas...'
+    all_masks, all_areas, all_probs = calc_all_areas(dataset.images)
+    print 'Calculating volumes...'
+    area_totals = [calc_total_volume(a, dataset.area_multiplier, dataset.dist)
+                   for a in all_areas]
+    print 'Calculating EF...'
+    edv_idx,edv = max(enumerate(area_totals), key=operator.itemgetter(1))
+    esv_idx,esv = min(enumerate(area_totals), key=operator.itemgetter(1))
+    ef = (edv - esv) / edv
+    print 'Done, EF is {:0.4f}'.format(ef)
+    
+    dataset.edv = edv
+    dataset.esv = esv
+    dataset.ef = ef
+
+
+
+def eval_dist(dist,actual_V)
+   score=0
+   for x in xrange(600):
+     H=0
+     if x>= actual_V:
+       H=1.0
+     score+=pow(dist[x]-H,2)
+   return score/600.0
 ###############
 #%%time
 #prefix2='dag'
 # We capture all standard output from IPython so it does not flood the interface.
-#if True:
 with io.capture_output() as captured:
     # edit this so it matches where you download the DSB data
     DATA_PATH = '/scratch/cardiacMRI/'
     #print 'init net'
-    caffe.set_mode_gpu()
-    caffe.set_device(gpu_num)
-    net = caffe.Net('models/cardiac/'+prefix+'_deploy.prototxt', 'data/sunnybrook_training/network/'+prefix+'_iter_'+str(iteration)+'.caffemodel', caffe.TEST)
 
     train_dir = os.path.join(DATA_PATH, mode)
     print 'DICOM dir is '+train_dir
@@ -227,27 +335,45 @@ with io.capture_output() as captured:
     if os.path.exists('output'):
         shutil.rmtree('output')
     os.mkdir('output')
+    accumScore=0
+    if load:
+     for s in studies:
+        dset = Dataset(os.path.join(train_dir, s), s)
+        segment_dataset_load(dset,loadFile)
+        
+        if mode=='train':
+            (edv, esv) = label_map[int(dset.name)]
+            accumScore+=eval_dist(dset.dias_dist,edv)
+            accumScore+=eval_dist(dset.sys_dist,esv)
+    else:
+     caffe.set_mode_gpu()
+     caffe.set_device(gpu_num)
+     net = caffe.Net('models/cardiac/'+prefix+'_deploy.prototxt', 'data/sunnybrook_training/network/'+prefix+'_iter_'+str(iteration)+'.caffemodel', caffe.TEST)
 
-
-    for s in studies:
+     for s in studies:
         dset = Dataset(os.path.join(train_dir, s), s)
         print 'Processing dataset %s...' % dset.name
         try:
             dset.load()
             if mode=='train':
                 (edv, esv) = label_map[int(dset.name)]
-                segment_dataset(dset)
-                accuracy_csv.write('%s,%f,%f,%f,%f\n' %
-                               (dset.name, edv, esv, dset.edv, dset.esv))
+                segment_dataset(dset,edv,esv)
+                #accuracy_csv.write('%s,%f,%f,%f,%f\n' %
+                #               (dset.name, edv, esv, dset.edv, dset.esv))
+                accumScore+=eval_dist(dset.dias_dist,edv)
+                accumScore+=eval_dist(dset.sys_dist,esv)
             else:
-                segment_dataset(dset)
-                accuracy_csv.write('%s,%f,%f\n' %
-                               (dset.name, dset.edv, dset.esv))
+                segment_dataset_k(dset,k)
+                #accuracy_csv.write('%s,%f,%f\n' %
+                #               (dset.name, dset.edv, dset.esv))
                 
         except Exception as e:
             print '***ERROR***: Exception %s thrown by dataset %s' % (str(e), dset.name)
 
     accuracy_csv.close()
+    if mode=='train':
+        accumScore /= 2*len(studies)
+        print 'CRPS= '+str(accumScore)
 
 # We redirect the captured stdout to a log file on disk.
 # This log file is very useful in identifying potential dataset irregularities that throw errors/exceptions in the code.

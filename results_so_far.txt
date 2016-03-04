@@ -1,3 +1,24 @@
+skipDrop_VGG
+Mean absolute error (MAE) for predicted EF: 0.1193
+Root mean square error (RMSE) for predicted EF: 0.1404
+
+drop_VGG
+Mean absolute error (MAE) for predicted EF: 0.2772
+Root mean square error (RMSE) for predicted EF: 0.3170
+
+hv_VGG
+Mean absolute error (MAE) for predicted EF: 0.3562
+Root mean square error (RMSE) for predicted EF: 0.3866
+
+skip_VGG
+Mean absolute error (MAE) for predicted EF: 0.1087
+Root mean square error (RMSE) for predicted EF: 0.1328
+
+VGG
+Mean absolute error (MAE) for predicted EF: 0.3469
+Root mean square error (RMSE) for predicted EF: 0.3768
+
+
 Caffe fine-tuned
 Mean absolute error (MAE) for predicted EF: 0.1739
 Root mean square error (RMSE) for predicted EF: 0.2138
