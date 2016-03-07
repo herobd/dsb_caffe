@@ -37,7 +37,7 @@ SAX_SERIES = {
     "SC-N-40": "0944",
 }
 
-SUNNYBROOK_ROOT_PATH = "/scratch/sunnybrook_open/"
+SUNNYBROOK_ROOT_PATH = settings['SUNNYBROOK_ROOT_PATH'] #"/scratch/sunnybrook_open/"
 
 TRAIN_CONTOUR_PATH = os.path.join(SUNNYBROOK_ROOT_PATH,
                             "Sunnybrook Cardiac MR Database ContoursPart3",
@@ -183,6 +183,6 @@ if __name__== "__main__":
     train_ctrs = ctrs[int(SPLIT_RATIO*len(ctrs)):]
     print("Done mapping ground truth contours to images")
     print("\nBuilding LMDB for train...")
-    export_all_contours(train_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/train_images3c224_lmdb", "data/sunnybrook_training/train_labels3c224_lmdb")
+    export_all_contours(train_ctrs, TRAIN_IMG_PATH, os.path.join(settings['LMDB_DIR'],"train_images3c224_lmdb"),  os.path.join(settings['LMDB_DIR'],"train_labels3c224_lmdb"))
     print("\nBuilding LMDB for val...")
-    export_all_contours(val_ctrs, TRAIN_IMG_PATH, "data/sunnybrook_training/val_images3c224_lmdb", "data/sunnybrook_training/val_labels3c224_lmdb")
+    export_all_contours(val_ctrs, TRAIN_IMG_PATH,  os.path.join(settings['LMDB_DIR'],"val_images3c224_lmdb"),  os.path.join(settings['LMDB_DIR'],"val_labels3c224_lmdb"))

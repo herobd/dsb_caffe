@@ -203,7 +203,7 @@ def calc_accumulative_distributions(prob,area_multiplier,dist,predVol):
          sumScores=0
          dev=0
          slices = np.array(sorted(prob.keys()))
-         for threshold in np.arange(0.7,0.29,-0.01):
+         for threshold in np.arange(0.99,0.00,-0.01):
             #print 'calc vol for thresh '+str(threshold)
             preds = [np.where(prob[i] > threshold, 1, 0) for i in slices]
             #if abs(threshold-0.5)<0.001:
@@ -233,10 +233,10 @@ def calc_accumulative_distributions(prob,area_multiplier,dist,predVol):
          print 'dev='+str(dev)+' predVol='+str(predVol)
          dist=[0]*600
          prevVal=0.0
-         prevVol=max(int(volumes[0])-10,0.0)
+         prevVol=max(int(volumes[0])-10,0)
          for i in xrange(len(volumes)):
             devs = (predVol-volumes[i])/dev
-            newVal=min(max(0.5-(devs*0.25),0.0),1.0)
+            newVal=min(max(0.5-(devs*0.125),0.0),1.0)
             newVol=min(int(volumes[i]),599)
             assert(not math.isnan(newVal))
             #print '        '+str(newVal) +' for vol '+str(newVol)
@@ -442,8 +442,8 @@ with io.capture_output() as captured:
     used={} ##[False]*(validEnd-validStart+1)
     for s in studies:
         debug+=1
-        #if debug > 2:
-        #  break
+        if debug > 40:
+          break
 
         dset = Dataset(os.path.join(studies_dir, s), s)
         print 'Processing dataset %s...' % dset.name
