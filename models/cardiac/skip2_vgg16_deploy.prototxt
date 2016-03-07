@@ -1,73 +1,9 @@
 name: "skip2_VGG_ILSVRC_16_layer_Sunny"
-#input: "data"
-#input_dim: 10
-#input_dim: 3
-#input_dim: 224
-#input_dim: 224
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    mean_value: 77
-  }
-  data_param {
-    source: "data/sunnybrook_training/train_images3c224_lmdb/"
-    batch_size: 64
-    backend: LMDB
-  }
-}
-layer {
-  name: "label"
-  type: "Data"
-  top: "label"
-  include {
-    phase: TRAIN
-  }
-  data_param {
-    source: "data/sunnybrook_training/train_labels3c224_lmdb/"
-    batch_size: 64
-    backend: LMDB
-  }
-  transform_param {
-    #crop_size: 224
-  }
-}
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    mean_value: 77
-  }
-  data_param {
-    source: "data/sunnybrook_training/val_images3c224_lmdb/"
-    batch_size: 26
-    backend: LMDB
-  }
-}
-layer {
-  name: "label"
-  type: "Data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  data_param {
-    source: "data/sunnybrook_training/val_labels3c224_lmdb/"
-    batch_size: 26
-    backend: LMDB
-  }
-  transform_param {
-    #crop_size: 227
-  }
-}
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 224
+input_dim: 224
 layer {
   bottom: "data"
   top: "conv1_1"
@@ -517,23 +453,8 @@ layer {
 #  top:"score"
 #}
 layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
+  name: "prob"
+  type: "Softmax"
   bottom: "upscore_fuse"
-  bottom: "label"
-  top: "loss"
-  loss_param {
-    normalize: true
-  }
+  top: "prob"
 }
-layer {
-  name: "accuracy"
-  type: "Accuracy"
-  bottom: "upscore_fuse"
-  bottom: "label"
-  top: "accuracy"
-  include {
-    phase: TEST
-  }
-}
-

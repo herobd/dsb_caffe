@@ -1,3 +1,25 @@
+skip2_20000 0.066418
+
+skip2_vgg16 at 20000 iters
+Mean absolute error (MAE) for predicted EF: 0.1036
+Root mean square error (RMSE) for predicted EF: 0.1316
+
+skipDrop2_vgg16
+Mean absolute error (MAE) for predicted EF: 0.1299
+Root mean square error (RMSE) for predicted EF: 0.1514
+
+skipr with 1000 iters
+Mean absolute error (MAE) for predicted EF: 0.1079
+Root mean square error (RMSE) for predicted EF: 0.1315
+
+skip_vgg16 with 20000 iters
+Mean absolute error (MAE) for predicted EF: 0.1089
+Root mean square error (RMSE) for predicted EF: 0.1330
+
+skip_vgg16 with 25000 iters
+Mean absolute error (MAE) for predicted EF: 0.1090
+Root mean square error (RMSE) for predicted EF: 0.1331
+
 skipDrop_VGG
 Mean absolute error (MAE) for predicted EF: 0.1193
 Root mean square error (RMSE) for predicted EF: 0.1404
@@ -9,6 +31,10 @@ Root mean square error (RMSE) for predicted EF: 0.3170
 hv_VGG
 Mean absolute error (MAE) for predicted EF: 0.3562
 Root mean square error (RMSE) for predicted EF: 0.3866
+
+skipr_vgg16
+Mean absolute error (MAE) for predicted EF: 0.1090
+Root mean square error (RMSE) for predicted EF: 0.1327
 
 skip_VGG
 Mean absolute error (MAE) for predicted EF: 0.1087

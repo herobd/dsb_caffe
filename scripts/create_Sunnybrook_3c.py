@@ -5,9 +5,14 @@ import numpy as np
 np.random.seed(1234)
 import matplotlib.pyplot as plt
 import warnings
+import json
 
-CAFFE_ROOT = "/home/brianld/bleeding_caffe"
-caffe_path = os.path.join(CAFFE_ROOT, "python")
+with open('SETTINGS.json', 'r') as f:
+    settings = json.load(f)
+
+
+#CAFFE_ROOT = "/home/brianld/bleeding_caffe"
+caffe_path = os.path.join(settings['CAFFE_ROOT'], "python")
 if caffe_path not in sys.path:
     sys.path.insert(0, caffe_path)
 

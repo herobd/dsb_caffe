@@ -2,32 +2,32 @@ from IPython.utils import io
 import numpy as np
 import sys
 
-accFile = sys.argv[1]
+#accFile = sys.argv[1]
 volFile = sys.argv[2]
 outFile = sys.argv[3]
 
 # calculate some error metrics to evaluate actual vs. predicted EF values obtained from FCN model
-data = np.transpose(np.loadtxt(accFile, delimiter=',')).astype('float')
-ids, actual_edv, actual_esv, predicted_edv, predicted_esv = data
-actual_ef = (actual_edv - actual_esv) / actual_edv
-actual_ef_std = np.std(actual_ef)
-actual_ef_median = np.median(actual_ef)
-predicted_ef = (predicted_edv - predicted_esv) / predicted_edv # potential of dividing by zero, where there is no predicted EDV value
-nan_idx = np.isnan(predicted_ef)
-actual_ef = actual_ef[~nan_idx]
-predicted_ef = predicted_ef[~nan_idx]
-MAE = np.mean(np.abs(actual_ef - predicted_ef))
-RMSE = np.sqrt(np.mean((actual_ef - predicted_ef)**2))
-print 'Mean absolute error (MAE) for predicted EF: {:0.4f}'.format(MAE)
-print 'Root mean square error (RMSE) for predicted EF: {:0.4f}'.format(RMSE)
-print 'Standard deviation of actual EF: {:0.4f}'.format(actual_ef_std)
-print 'Median value of actual EF: {:0.4f}'.format(actual_ef_median)
+#data = np.transpose(np.loadtxt(accFile, delimiter=',')).astype('float')
+#ids, actual_edv, actual_esv, predicted_edv, predicted_esv = data
+#actual_ef = (actual_edv - actual_esv) / actual_edv
+#actual_ef_std = np.std(actual_ef)
+#actual_ef_median = np.median(actual_ef)
+#predicted_ef = (predicted_edv - predicted_esv) / predicted_edv # potential of dividing by zero, where there is no predicted EDV value
+#nan_idx = np.isnan(predicted_ef)
+#actual_ef = actual_ef[~nan_idx]
+#predicted_ef = predicted_ef[~nan_idx]
+#MAE = np.mean(np.abs(actual_ef - predicted_ef))
+#RMSE = np.sqrt(np.mean((actual_ef - predicted_ef)**2))
+#print 'Mean absolute error (MAE) for predicted EF: {:0.4f}'.format(MAE)
+#print 'Root mean square error (RMSE) for predicted EF: {:0.4f}'.format(RMSE)
+#print 'Standard deviation of actual EF: {:0.4f}'.format(actual_ef_std)
+#print 'Median value of actual EF: {:0.4f}'.format(actual_ef_median)
 
-esv_mean = np.mean(actual_esv)
-edv_mean = np.mean(actual_edv)
+#esv_mean = np.mean(actual_esv)
+#edv_mean = np.mean(actual_edv)
 
-dias_k = actual_edv.sum()/predicted_edv.sum()
-sys_k = actual_esv.sum()/predicted_esv.sum()
+dias_k = 1.0 #actual_edv.sum()/predicted_edv.sum()
+sys_k = 1.0 #actual_esv.sum()/predicted_esv.sum()
 #k = (dias_k+sys_k)/2
 #print 'predicted k = '+str(k)
 
@@ -39,19 +39,19 @@ sys_k = actual_esv.sum()/predicted_esv.sum()
 
 #dias_k /=ids.shape[0]
 #sys_k /=ids.shape[0]
-print 'predicted dias_k = '+str(dias_k)
-print 'predicted sys_k = '+str(sys_k)
+#print 'predicted dias_k = '+str(dias_k)
+#print 'predicted sys_k = '+str(sys_k)
 
-predicted_esv_adj = predicted_esv*sys_k
-MAEsv = np.mean(np.abs(actual_esv - predicted_esv_adj))
-RMSEsv = np.sqrt(np.mean((actual_esv - predicted_esv_adj)**2))
-print 'Mean absolute error (MAE) for predicted systole vol: {:0.4f}'.format(MAEsv)
-print 'Root mean square error (RMSE) for predicted systole vol: {:0.4f}'.format(RMSEsv)
-predicted_edv_adj = predicted_edv*dias_k
-MAEdv = np.mean(np.abs(actual_edv - predicted_edv_adj))
-RMSEdv = np.sqrt(np.mean((actual_edv - predicted_edv_adj)**2))
-print 'Mean absolute error (MAE) for predicted diastole vol: {:0.4f}'.format(MAEdv)
-print 'Root mean square error (RMSE) for predicted diastole vol: {:0.4f}'.format(RMSEdv)
+#predicted_esv_adj = predicted_esv*sys_k
+#MAEsv = np.mean(np.abs(actual_esv - predicted_esv_adj))
+#RMSEsv = np.sqrt(np.mean((actual_esv - predicted_esv_adj)**2))
+#print 'Mean absolute error (MAE) for predicted systole vol: {:0.4f}'.format(MAEsv)
+#print 'Root mean square error (RMSE) for predicted systole vol: {:0.4f}'.format(RMSEsv)
+#predicted_edv_adj = predicted_edv*dias_k
+#MAEdv = np.mean(np.abs(actual_edv - predicted_edv_adj))
+#RMSEdv = np.sqrt(np.mean((actual_edv - predicted_edv_adj)**2))
+#print 'Mean absolute error (MAE) for predicted diastole vol: {:0.4f}'.format(MAEdv)
+#print 'Root mean square error (RMSE) for predicted diastole vol: {:0.4f}'.format(RMSEdv)
 
 dataV = np.transpose(np.loadtxt(volFile, delimiter=',')).astype('float')
 ids, predicted_edv, predicted_esv = dataV
