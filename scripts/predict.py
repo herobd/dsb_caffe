@@ -442,8 +442,8 @@ with io.capture_output() as captured:
     used={} ##[False]*(validEnd-validStart+1)
     for s in studies:
         debug+=1
-        if debug > 40:
-          break
+        #if debug > 40:
+        #  break
 
         dset = Dataset(os.path.join(studies_dir, s), s)
         print 'Processing dataset %s...' % dset.name
