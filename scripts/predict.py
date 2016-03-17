@@ -418,8 +418,8 @@ def write_dist_cleanup(out,used):
 #if True:
 with io.capture_output() as captured:
     # edit this so it matches where you download the DSB data
-    if mode=='train':
-      studies_dir =  settings['TRAIN_DATA_PATH']
+    if mode=='train' or mode=='validate':
+      studies_dir =  settings[mode+'_DATA_PATH']
     else:
       studies_dir =  settings['TEST_DATA_PATH'] #os.path.join(DATA_PATH, mode)
     DATA_PATH = os.path.join(studies_dir,'..') #'/scratch/cardiacMRI/'
@@ -428,19 +428,22 @@ with io.capture_output() as captured:
     print 'DICOM dir is '+studies_dir
     studies = next(os.walk(studies_dir))[1]
     #print 'load csv'
-    if mode=='train':
-        labels = np.loadtxt(os.path.join(DATA_PATH, 'train.csv'), delimiter=',',
+    if mode=='train' or mode=='validate':
+        labels = np.loadtxt(os.path.join(DATA_PATH, mode+'.csv'), delimiter=',',
                         skiprows=1)
 
         label_map = {}
         for l in labels:
             label_map[l[0]] = (l[2], l[1])
-        accuracy_csv = open(os.path.join(settings['OUT_PATH'],'train_dist_'+prefix+'_'+str(iteration)+'.csv'), 'w')
-    elif mode=='validate':
-        accuracy_csv = open(os.path.join(settings['OUT_PATH'],'validate_dist_'+prefix+'_'+str(iteration)+'.csv'), 'w')
+        accuracy_csv = open(os.path.join(settings['OUT_PATH'],mode+'_dist_'+prefix+'_'+str(iteration)+'.csv'), 'w')
+        pred_csv = open(os.path.join(settings['OUT_PATH'],mode+'_pred_'+prefix+'_'+str(iteration)+'.csv'), 'w')
+    #elif mode=='validate':
+    #    accuracy_csv = open(os.path.join(settings['OUT_PATH'],'validate_dist_'+prefix+'_'+str(iteration)+'.csv'), 'w')
+    #    pred_csv = open(os.path.join(settings['OUT_PATH'],'validate_pred_'+prefix+'_'+str(iteration)+'.csv'), 'w')
          
     else:
         accuracy_csv = open(settings['SUBMISSION_PATH'],'w')
+        pred_csv = open(os.path.join(settings['OUT_PATH'],'test_pred_'+prefix+'_'+str(iteration)+'.csv'), 'w')
     write_dist_head(accuracy_csv)
     #if os.path.exists('output'):
     #    shutil.rmtree('output')
@@ -471,27 +474,28 @@ with io.capture_output() as captured:
         used[dset.name]=False
         try:
             dset.load()
-            if mode=='train':
+            if mode=='train' or mode=='validate':
                 (edv, esv) = label_map[int(dset.name)]
                 if load:
                    segment_dataset_load(dset,loadFile)
                 else:
                    segment_dataset(dset,edv,esv)
-                   
-                #accuracy_csv.write('%s,%f,%f,%f,%f\n' %
-                #               (dset.name, edv, esv, dset.edv, dset.esv))
+                
+                pred_csv.write('%s,%f,%f,%f,%f\n' %
+                               (dset.name, edv, esv, dset.edv, dset.esv))
                 accumScore+=eval_dist(dset.dias_dist,edv)
                 accumScore+=eval_dist(dset.sys_dist,esv)
             else:
                 segment_dataset(dset,None,None)
-                #accuracy_csv.write('%s,%f,%f\n' %
-                #               (dset.name, dset.edv, dset.esv))
+                pred_csv.write('%s,%f,%f\n' %
+                               (dset.name, dset.edv, dset.esv))
                 
             write_dist(dset, accuracy_csv,used)
         except Exception as e:
             print '***ERROR***: Exception %s thrown by dataset %s' % (str(e), dset.name)
     write_dist_cleanup(accuracy_csv,used)
     accuracy_csv.close()
+    pred_csv.close()
     if mode=='train':
         accumScore /= 2.0*debug
         print 'CRPS= '+str(accumScore)

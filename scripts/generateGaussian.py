@@ -3,7 +3,8 @@ import numpy as np
 import sys
 import math
 
-#accFile = sys.argv[1]
+trainFile = sys.argv[1]
+validateFile = sys.argv[2]
 #volFile = "/home/yunan/anaconda2/scripts/accuracy_caffe.csv" #sys.argv[2]
 #outFile = "/home/yunan/anaconda2/scripts/out.txt" #sys.argv[3]
 
@@ -54,7 +55,7 @@ sys_k = 1.0 #actual_esv.sum()/predicted_esv.sum()
 #print 'Mean absolute error (MAE) for predicted diastole vol: {:0.4f}'.format(MAEdv)
 #print 'Root mean square error (RMSE) for predicted diastole vol: {:0.4f}'.format(RMSEdv)
 
-dataV = np.transpose(np.loadtxt("accuracy_caffe.csv", delimiter=",")).astype('float')
+dataV = np.transpose(np.loadtxt(trainFile, delimiter=",")).astype('float')
 
 ids, t_edv, t_esv, p_edv, p_esv = dataV
 
@@ -74,28 +75,94 @@ print s_dev
 print d_dev
 
 maxVol=600
-out = open("outfile.txt",'w')
+
+#trainDist_sys=[0]*600
+#trainDist_dias=[0]*600
+
+out = open("train_guasDist.csv",'w')
 out.write('Id')
 for v in xrange(maxVol):
     out.write(',P'+str(v))
 out.write('\n')
 
+accumScore=0
 for i in xrange(ids.size):
     id = str(int(ids[i]))
     if ((p_edv[i] != 0) & (p_esv[i] != 0)):
 
-	multiplier = (t_esv[i]+ t_edv[i] )/ (p_esv[i] + p_edv[i])
+	multiplier = 1 #(t_esv[i]+ t_edv[i] )/ (p_esv[i] + p_edv[i])
 	
+        dist_sys=[0]*maxVol
         out.write(id+'_Systole')
         for v in xrange(maxVol):
-	    outstring = ',' + str(0.5*(1 + math.erf( (v - p_esv[i]*multiplier)/(math.sqrt(s_dev*2)))))
+            dist_sys[v]=0.5*(1 + math.erf( (v - p_esv[i]*multiplier)/(math.sqrt(s_dev*2))))
+	    outstring = ',' + str(dist_sys[v])
             out.write(outstring)
         out.write('\n')
     
+        dist_dias=[0]*maxVol
         out.write(id+'_Diastole')
         for v in xrange(maxVol):
-            poss = (0.5)*(1 + math.erf((v - p_edv[i]*multiplier)/(math.sqrt(d_dev*2))))
+            dist_dias[v]=(0.5)*(1 + math.erf((v - p_edv[i]*multiplier)/(math.sqrt(d_dev*2))))
             out.write(',')
-	    out.write(str(poss))
+	    out.write(str(dist_dias[v]))
         out.write('\n')
+        
+        accumScore+=eval_dist(dist_sys,t_esv[i])
+        accumScore+=eval_dist(dist_dias,t_edv[i])
+out.close()
+print 'CRPS on test data: '+str(accumScore/(2*ids.size))
 
+def eval_dist(dist,actual_V):
+   #print 'eval_dist'
+   score=0
+   assert(dist[0]==0)
+   assert(dist[-1]==1.0)
+   for x in xrange(600):
+     assert(x==0 or dist[x-1]<=dist[x])
+     H=0
+     if x>= actual_V:
+       H=1.0
+     score+=pow(dist[x]-H,2)
+   return score/600.0
+
+
+dataV = np.transpose(np.loadtxt(validateFile, delimiter=",")).astype('float')
+
+ids, valid_t_edv, valid_t_esv, p_edv, p_esv = dataV
+validateDist_sys=[0]*600
+validateDist_dias=[0]*600
+
+out = open("validate_guasDist.csv",'w')
+out.write('Id')
+for v in xrange(maxVol):
+    out.write(',P'+str(v))
+out.write('\n')
+
+accumScore=0
+for i in xrange(ids.size):
+    id = str(int(ids[i]))
+    if ((p_edv[i] != 0) & (p_esv[i] != 0)):
+
+	multiplier = 1 #(t_esv[i]+ t_edv[i] )/ (p_esv[i] + p_edv[i])
+	
+        dist_sys=[0]*maxVol
+        out.write(id+'_Systole')
+        for v in xrange(maxVol):
+            dist_sys[v]=0.5*(1 + math.erf( (v - p_esv[i]*multiplier)/(math.sqrt(s_dev*2))))
+	    outstring = ',' + str(dist_sys[v])
+            out.write(outstring)
+        out.write('\n')
+    
+        dist_dias=[0]*maxVol
+        out.write(id+'_Diastole')
+        for v in xrange(maxVol):
+            dist_dias[v]=(0.5)*(1 + math.erf((v - p_edv[i]*multiplier)/(math.sqrt(d_dev*2))))
+            out.write(',')
+	    out.write(str(dist_dias[v]))
+        out.write('\n')
+        
+        accumScore+=eval_dist(dist_sys,validate_t_esv[i])
+        accumScore+=eval_dist(dist_dias,validate_t_edv[i])
+out.close()
+print 'CRPS on validation data: '+str(accumScore/(2*ids.size))
