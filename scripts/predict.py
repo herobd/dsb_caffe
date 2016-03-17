@@ -25,10 +25,11 @@ load =  '_seg.pkl' in prefix
 loadFile=prefix
 if load:
   prefix=re.match(r'.*/(.*)_seg\.pkl',loadFile).group(1)
+gpu_num=0
 if len(sys.argv)>3:
   gpu_num=int(sys.argv[3])
 
-iteration=20000
+iteration=15000
 if len(sys.argv)>4:
   iteration = int(sys.argv[4])
 
@@ -72,9 +73,15 @@ class Dataset(object):
                     if offset is None:
                         offset = int(m.group(1))
                 else:
-                  m = re.match('IM-(\d{4,})-(\d{4})-(\d{4})\.dcm', f)
+                  m = re.match('IM-(\d{4,})-(\d{4})-(\d{4,})\.dcm', f)
                   if m is not None:
-			nothin='nothin'
+                      if int(m.group(3))==1:
+                        if first:
+                          times.append(int(m.group(2)))
+                        if offset is None:
+                          offset = int(m.group(1))
+                  else:
+                     print 'did not match: '+f     
                       
             first = False
             slices_map[s] = offset
@@ -87,9 +94,16 @@ class Dataset(object):
         self.name = subdir
 
     def _filename(self, s, t):
-        return os.path.join(self.directory,
+        ret = os.path.join(self.directory,
                             'sax_%d' % s,
                             'IM-%04d-%04d.dcm' % (self.slices_map[s], t))
+
+        if os.path.exists(ret):
+            return ret
+        else:
+            return os.path.join(self.directory,
+                            'sax_%d' % s,
+                            'IM-%04d-%04d-0001.dcm' % (self.slices_map[s], t))
 
     def _read_dicom_image(self, filename):
         d = dicom.read_file(filename)
@@ -103,12 +117,17 @@ class Dataset(object):
         d1 = dicom.read_file(f1)
         (x, y) = d1.PixelSpacing
         (x, y) = (float(x), float(y))
-        f2 = self._filename(self.slices[1], self.time[0])
-        d2 = dicom.read_file(f2)
+        if len(self.slices)>1:
+          f2 = self._filename(self.slices[1], self.time[0])
 
+          d2 = dicom.read_file(f2)
         # try a couple of things to measure distance between slices
         try:
-            dist = np.abs(d2.SliceLocation - d1.SliceLocation)
+            if len(self.slices)>1:
+              dist = np.abs(d2.SliceLocation - d1.SliceLocation)
+            else:
+              dist = d1.SliceThickness
+        
         except AttributeError:
             try:
                 dist = d1.SliceThickness
@@ -132,7 +151,9 @@ net=None
 
 
 def calc_all_areas(images):
-    (num_images, times, _, _) = images.shape
+    #(num_images, times, _, _) = images.shape
+    num_images = images.shape[0]
+    times = images.shape[1]
     print 'calc_all_areas'
     all_probs = [{} for i in range(times)]
     all_masks = [{} for i in range(times)]

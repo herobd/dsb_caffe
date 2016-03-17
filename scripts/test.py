@@ -121,7 +121,9 @@ MEAN_VALUE = 77
 THRESH = 0.5
 
 def calc_all_areas(images):
-    (num_images, times, _, _) = images.shape
+    #(num_images, times, _, _) = images.shape
+    num_images = images.shape[0]
+    times = images.shape[1]
     
     all_masks = [{} for i in range(times)]
     all_areas = [{} for i in range(times)]
@@ -194,8 +196,8 @@ if True:
     #accuracy_csv = open('accuracy_dag.csv', 'w')
 
     for s in studies:
-        if not (s=='597'):
-          continue
+        #if not (s=='597'):
+        #  continue
         dset = Dataset(os.path.join(train_dir, s), s)
         print 'Processing dataset %s...' % dset.name
         try:
