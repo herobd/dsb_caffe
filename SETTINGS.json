@@ -1,0 +1,16 @@
+{
+  "TRAIN_DATA_PATH":"/scratch/cardiacMRI/train/",
+  "train_DATA_PATH":"/scratch/cardiacMRI/train/",
+  "validate_DATA_PATH":"/scratch/cardiacMRI/validate/",
+  "TEST_DATA_PATH":"/scratch/cardiacMRI/test/",
+  "MODEL_PATH":"models/cardiac/skip_vgg16_iter_15000.caffemodel",
+  "SUBMISSION_PATH":"./SUBMISSION.csv",
+  
+  "PRETRAINED_MODEL_PATH":"models/cardiac/skip_vgg16_iter_15000.caffemodel",
+  "OUT_PATH":"./",
+  "NET_DEFS":"models/cardiac/",
+  "CAFFE_ROOT":"/home/brianld/bleeding_caffe",
+  "MODEL_NAME":"skip_vgg16",
+  "LMDB_DIR":"data/sunnybrook_training/",
+  "SUNNYBROOK_ROOT_PATH":"/scratch/sunnybrook_open/"
+}

@@ -1,3 +1,7 @@
+CRPS
+skip_vgg guass 0.0444648045405
+skip_vgg old   0.0469669830607
+------
 train, 40 
 i
 .25 and .3-.7

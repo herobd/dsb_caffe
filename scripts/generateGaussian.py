@@ -76,6 +76,18 @@ print d_dev
 
 maxVol=600
 
+def eval_dist(dist,actual_V):
+   #print 'eval_dist'
+   score=0
+   #assert(dist[0]==0)
+   #assert(dist[-1]==1.0)
+   for x in xrange(600):
+     assert(x==0 or dist[x-1]<=dist[x])
+     H=0
+     if x>= actual_V:
+       H=1.0
+     score+=pow(dist[x]-H,2)
+   return score/600.0
 #trainDist_sys=[0]*600
 #trainDist_dias=[0]*600
 
@@ -113,23 +125,11 @@ for i in xrange(ids.size):
 out.close()
 print 'CRPS on test data: '+str(accumScore/(2*ids.size))
 
-def eval_dist(dist,actual_V):
-   #print 'eval_dist'
-   score=0
-   assert(dist[0]==0)
-   assert(dist[-1]==1.0)
-   for x in xrange(600):
-     assert(x==0 or dist[x-1]<=dist[x])
-     H=0
-     if x>= actual_V:
-       H=1.0
-     score+=pow(dist[x]-H,2)
-   return score/600.0
 
 
 dataV = np.transpose(np.loadtxt(validateFile, delimiter=",")).astype('float')
 
-ids, valid_t_edv, valid_t_esv, p_edv, p_esv = dataV
+ids, validate_t_edv, validate_t_esv, p_edv, p_esv = dataV
 validateDist_sys=[0]*600
 validateDist_dias=[0]*600
 
